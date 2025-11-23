@@ -1,0 +1,65 @@
+.textAreaWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.textArea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--color-gray-900);
+  background: white;
+  border: 2px solid var(--color-gray-200);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.textArea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.textArea::placeholder {
+  color: var(--color-gray-400);
+}
+
+.textArea.error {
+  border-color: var(--color-error);
+}
+
+.textArea.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.errorText {
+  font-size: 0.875rem;
+  color: var(--color-error);
+}
+
+.helperText {
+  font-size: 0.875rem;
+  color: var(--color-gray-500);
+}
+
+.count {
+  font-size: 0.875rem;
+  color: var(--color-gray-500);
+}
