@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Avatar, Button } from './';
+import { Avatar } from './Avatar';
+import { Button } from './Button';
 import styles from './Layout.module.css';
 
 interface LayoutProps {
