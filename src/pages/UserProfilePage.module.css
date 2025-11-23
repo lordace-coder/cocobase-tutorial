@@ -1,0 +1,156 @@
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profileCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.displayName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.username {
+  font-size: 1rem;
+  color: var(--color-gray-600);
+}
+
+.bio {
+  text-align: center;
+  color: var(--color-gray-700);
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.stats {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--color-gray-600);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.tabs {
+  display: flex;
+  background: white;
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  background: var(--color-gray-50);
+}
+
+.tab.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.content {
+  min-height: 400px;
+}
+
+.posts {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.about {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.aboutCard h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin-bottom: 1rem;
+}
+
+.aboutCard p {
+  color: var(--color-gray-700);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.joined {
+  font-size: 0.875rem;
+  color: var(--color-gray-500);
+}
+
+@media (max-width: 640px) {
+  .profileCard {
+    padding: 1.5rem;
+  }
+
+  .stats {
+    gap: 1.5rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}

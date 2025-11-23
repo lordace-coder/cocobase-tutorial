@@ -1,6 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
-import { AuthPage, HomePage, NotificationsPage, PostDetailPage } from './pages';
+import {
+  AuthPage,
+  HomePage,
+  NotificationsPage,
+  PostDetailPage,
+  ChatsPage,
+  ChatWindowPage,
+  UserProfilePage,
+  MyProfilePage,
+  EditProfilePage,
+  SearchPage,
+} from './pages';
 import './styles/globalStyles.css';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -85,6 +96,54 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <PostDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/chats"
+        element={
+          <ProtectedRoute>
+            <ChatsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/chat/:chatId"
+        element={
+          <ProtectedRoute>
+            <ChatWindowPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <SearchPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <MyProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/edit"
+        element={
+          <ProtectedRoute>
+            <EditProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/:username"
+        element={
+          <ProtectedRoute>
+            <UserProfilePage />
           </ProtectedRoute>
         }
       />

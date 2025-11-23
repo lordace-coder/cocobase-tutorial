@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Post, Comment } from '../types';
 import { PostCard } from '../components/post';
-import { Avatar, Button, TextArea } from '../components/common';
+import { Avatar, Button, TextArea, Layout } from '../components/common';
 import { formatRelativeTime } from '../utils/textParser';
 import styles from './PostDetailPage.module.css';
 
@@ -222,7 +222,8 @@ export const PostDetailPage = () => {
   }
 
   return (
-    <div className={styles.container}>
+    <Layout>
+      <div className={styles.container}>
       <button className={styles.backButton} onClick={() => navigate(-1)}>
         ← Back
       </button>
@@ -301,5 +302,6 @@ export const PostDetailPage = () => {
         </div>
       </div>
     </div>
+    </Layout>
   );
 };

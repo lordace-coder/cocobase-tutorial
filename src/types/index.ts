@@ -83,3 +83,36 @@ export interface Notification {
   isRead: boolean;
   createdAt: Date;
 }
+
+export type MessageType = 'text' | 'image' | 'video' | 'voice' | 'file';
+
+export interface Message {
+  id: string;
+  chatId: string;
+  senderId: string;
+  sender: User;
+  type: MessageType;
+  content: string;
+  mediaUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  duration?: number; // For voice messages
+  isRead: boolean;
+  createdAt: Date;
+}
+
+export interface Chat {
+  id: string;
+  participants: User[];
+  lastMessage?: Message;
+  unreadCount: number;
+  updatedAt: Date;
+  createdAt: Date;
+}
+
+export interface UserProfile extends User {
+  postsCount: number;
+  followersCount: number;
+  followingCount: number;
+  isFollowing?: boolean;
+}

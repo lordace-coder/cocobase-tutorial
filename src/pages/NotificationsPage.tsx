@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Notification } from '../types';
 import { NotificationItem } from '../components/notifications';
-import { Button } from '../components/common';
+import { Button, Layout } from '../components/common';
 import styles from './NotificationsPage.module.css';
 
 // Mock notifications for demonstration
@@ -114,8 +114,9 @@ export const NotificationsPage = () => {
       : notifications;
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <Layout>
+      <div className={styles.container}>
+        <div className={styles.header}>
         <div className={styles.titleSection}>
           <h1 className={styles.title}>Notifications</h1>
           {unreadCount > 0 && (
@@ -172,6 +173,7 @@ export const NotificationsPage = () => {
           ))
         )}
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 };

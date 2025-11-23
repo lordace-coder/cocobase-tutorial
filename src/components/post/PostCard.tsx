@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Post } from '../../types';
 import { formatRelativeTime, formatNumber } from '../../utils/textParser';
 import { Avatar } from '../common';
@@ -13,6 +14,21 @@ interface PostCardProps {
 
 export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
   const [showComments, setShowComments] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'BUTTON' ||
+      target.closest('button') ||
+      target.classList.contains(styles.hashtag) ||
+      target.classList.contains(styles.mention)
+    ) {
+      return;
+    }
+    navigate(`/post/${post.id}`);
+  };
 
   const renderContent = () => {
     const parts: React.ReactNode[] = [];
@@ -59,7 +75,7 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
   };
 
   return (
-    <div className={styles.card}>
+    <div className={styles.card} onClick={handleCardClick}>
       <div className={styles.header}>
         <Avatar
           src={post.user.avatarUrl}

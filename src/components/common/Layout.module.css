@@ -83,6 +83,19 @@
   gap: 0.75rem;
 }
 
+.avatarButton {
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: opacity 0.2s ease;
+}
+
+.avatarButton:hover {
+  opacity: 0.8;
+}
+
 .username {
   font-size: 0.875rem;
   font-weight: 600;

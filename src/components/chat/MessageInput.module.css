@@ -1,0 +1,196 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: white;
+  border-top: 1px solid var(--color-gray-200);
+  padding: 1rem;
+}
+
+.preview {
+  position: relative;
+  max-width: 300px;
+  padding: 0.5rem;
+  background: var(--color-gray-50);
+  border-radius: 0.75rem;
+}
+
+.previewImage,
+.previewVideo {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.filePreview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.fileIcon {
+  font-size: 1.5rem;
+}
+
+.fileName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.clearButton {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s ease;
+}
+
+.clearButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.inputArea {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.attachWrapper {
+  position: relative;
+}
+
+.attachButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-gray-100);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.attachButton:hover:not(:disabled) {
+  background: var(--color-gray-200);
+}
+
+.attachButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.attachMenu {
+  position: absolute;
+  bottom: 3rem;
+  left: 0;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 150px;
+  animation: slideUp 0.2s ease-out;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  transition: background 0.2s ease;
+  text-align: left;
+}
+
+.menuItem:hover {
+  background: var(--color-gray-100);
+}
+
+.menuItem span:first-child {
+  font-size: 1.25rem;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.input {
+  flex: 1;
+  min-height: 2.5rem;
+  max-height: 120px;
+  padding: 0.75rem 1rem;
+  background: var(--color-gray-50);
+  border: 2px solid var(--color-gray-200);
+  border-radius: 1.25rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--color-gray-900);
+  resize: none;
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: white;
+}
+
+.input::placeholder {
+  color: var(--color-gray-400);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .preview {
+    max-width: 100%;
+  }
+
+  .attachButton {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.125rem;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

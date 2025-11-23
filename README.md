@@ -10,6 +10,17 @@ A modern community app built with React, TypeScript, and Vite - designed for Baa
 - 🏷️ **Hashtags**: Organize and discover content with hashtags
 - 👤 **Mentions**: Tag users with @ mentions
 - ❤️ **Likes**: Show appreciation for posts
+- 🔔 **Notifications**: Real-time notification system for likes, comments, and mentions
+- 📄 **Post Detail**: Dedicated page for each post with full comment thread
+- 💬 **Private Chat**: One-on-one messaging with media support
+  - Send text, images, videos, voice notes, and files
+  - Real-time chat interface
+  - Message history
+- 👥 **User Profiles**: View user profiles with posts and stats
+- ⚙️ **Profile Management**: Edit profile, update bio, change avatar
+- 🗑️ **Account Deletion**: Secure account deletion option
+- 🔍 **Search**: Search for users, posts, and hashtags
+- 🧭 **Navigation**: Intuitive navigation with Home, Search, Notifications, Messages, and Profile
 - 📱 **Mobile-First**: Responsive design optimized for mobile devices
 - 🎨 **Green & Orange Theme**: Eye-catching color scheme
 
