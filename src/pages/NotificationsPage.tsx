@@ -1,117 +1,156 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Notification } from '../types';
 import { NotificationItem } from '../components/notifications';
 import { Button, Layout } from '../components/common';
 import styles from './NotificationsPage.module.css';
-
-// Mock notifications for demonstration
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'mention',
-    userId: '2',
-    user: {
-      id: '2',
-      username: 'sarahdev',
-      displayName: 'Sarah Developer',
-      email: 'sarah@example.com',
-      createdAt: new Date(),
-    },
-    postId: '1',
-    message: 'mentioned you in a post',
-    isRead: false,
-    createdAt: new Date(Date.now() - 10 * 60 * 1000),
-  },
-  {
-    id: '2',
-    type: 'like',
-    userId: '3',
-    user: {
-      id: '3',
-      username: 'mikecoder',
-      displayName: 'Mike Coder',
-      email: 'mike@example.com',
-      createdAt: new Date(),
-    },
-    postId: '2',
-    message: 'liked your post',
-    isRead: false,
-    createdAt: new Date(Date.now() - 30 * 60 * 1000),
-  },
-  {
-    id: '3',
-    type: 'comment',
-    userId: '4',
-    user: {
-      id: '4',
-      username: 'jennytech',
-      displayName: 'Jenny Tech',
-      email: 'jenny@example.com',
-      createdAt: new Date(),
-    },
-    postId: '3',
-    commentId: '1',
-    message: 'commented on your post',
-    isRead: true,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-  },
-  {
-    id: '4',
-    type: 'mention',
-    userId: '2',
-    user: {
-      id: '2',
-      username: 'sarahdev',
-      displayName: 'Sarah Developer',
-      email: 'sarah@example.com',
-      createdAt: new Date(),
-    },
-    postId: '4',
-    message: 'mentioned you in a comment',
-    isRead: true,
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-  },
-  {
-    id: '5',
-    type: 'follow',
-    userId: '5',
-    user: {
-      id: '5',
-      username: 'alexui',
-      displayName: 'Alex UI',
-      email: 'alex@example.com',
-      createdAt: new Date(),
-    },
-    message: 'started following you',
-    isRead: true,
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-  },
-];
+import db from '@/lib/cocobase';
+import { useAuth } from '@/hooks/useAuth';
 
 export const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch notifications from Cocobase
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!user) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const fetchedNotifications = await db.listDocuments<Notification>('notifications', {
+          populate: ['user_id'], // Populate the user who triggered the notification
+          filters: {
+            recipient_id: user.id, // Only get notifications for current user
+          },
+          sort: '-created_at', // Sort by newest first
+        });
+
+        setNotifications(fetchedNotifications as any);
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err);
+        setError('Failed to load notifications. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [user]);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      // Optimistically update UI
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === id ? { ...notif, isRead: true } : notif
+        )
+      );
+
+      // Update in database
+      await db.updateDocument('notifications', id, {
+        isRead: true,
+      });
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+      // Revert optimistic update on error
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === id ? { ...notif, isRead: false } : notif
+        )
+      );
+    }
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notif) => ({ ...notif, isRead: true }))
-    );
+  const handleMarkAllAsRead = async () => {
+    const unreadNotifications = notifications.filter((n) => !n.isRead);
+
+    try {
+      // Optimistically update UI
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
+      );
+
+      // Update all unread notifications in database
+      await Promise.all(
+        unreadNotifications.map((notif) =>
+          db.updateDocument('notifications', notif.id, {
+            isRead: true,
+          })
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+      alert('Failed to mark all as read. Please try again.');
+      // Revert optimistic update
+      setNotifications((prev) =>
+        prev.map((notif) => {
+          const wasUnread = unreadNotifications.find((n) => n.id === notif.id);
+          return wasUnread ? { ...notif, isRead: false } : notif;
+        })
+      );
+    }
   };
 
   const filteredNotifications =
     filter === 'unread'
       ? notifications.filter((n) => !n.isRead)
       : notifications;
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <div className={styles.titleSection}>
+              <h1 className={styles.title}>Notifications</h1>
+            </div>
+          </div>
+          <div className={styles.notifications}>
+            <div className={styles.emptyState}>
+              <span className={styles.emptyIcon}>⟳</span>
+              <h3>Loading notifications...</h3>
+              <p>Please wait</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <div className={styles.titleSection}>
+              <h1 className={styles.title}>Notifications</h1>
+            </div>
+          </div>
+          <div className={styles.notifications}>
+            <div className={styles.emptyState}>
+              <span className={styles.emptyIcon}>⚠️</span>
+              <h3>Failed to load notifications</h3>
+              <p>{error}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="primary"
+                size="sm"
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

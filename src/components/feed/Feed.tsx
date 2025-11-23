@@ -1,91 +1,99 @@
-import { useState } from 'react';
-import { Post, CreatePostData } from '../../types';
-import { CreatePost, PostCard } from '../post';
-import styles from './Feed.module.css';
-
-// Mock data for demonstration
-const mockPosts: Post[] = [
-  {
-    id: '1',
-    userId: '1',
-    user: {
-      id: '1',
-      username: 'johndoe',
-      displayName: 'John Doe',
-      email: 'john@example.com',
-      createdAt: new Date(),
-    },
-    type: 'text',
-    content: 'Just deployed my first app with #react and #typescript! Thanks @sarahdev for the help 🚀',
-    hashtags: ['react', 'typescript'],
-    mentions: ['sarahdev'],
-    likes: 42,
-    commentsCount: 5,
-    isLiked: false,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-  },
-  {
-    id: '2',
-    userId: '2',
-    user: {
-      id: '2',
-      username: 'sarahdev',
-      displayName: 'Sarah Developer',
-      email: 'sarah@example.com',
-      createdAt: new Date(),
-    },
-    type: 'text',
-    content: 'Working on a new #opensource project. Check it out! #coding #webdev',
-    hashtags: ['opensource', 'coding', 'webdev'],
-    mentions: [],
-    likes: 128,
-    commentsCount: 12,
-    isLiked: true,
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-  },
-];
+import { useEffect } from "react";
+import { CreatePostData } from "../../types";
+import { CreatePost, PostCard } from "../post";
+import styles from "./Feed.module.css";
+import db from "@/lib/cocobase";
+import { usePostsStore } from "@/store";
 
 export const Feed = () => {
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
+  // Get state and actions from Zustand store
+  const { posts, isLoading, error, fetchPosts, toggleLike, incrementCommentCount, addPost } = usePostsStore();
 
   const handleCreatePost = async (data: CreatePostData) => {
-    // TODO: Replace with actual API call
-    console.log('Creating post:', data);
+    console.log("Creating post:", data);
+    try {
+      let newPost;
+      if (data.mediaFile && data.type != "text") {
+        newPost = await db.createDocumentWithFiles(
+          "posts",
+          {
+            user_id: db.auth.getUser()?.id,
+            content: data.content,
+            postType: data.type,
+          },
+          {
+            file: data.mediaFile,
+          }
+        );
+      } else {
+        newPost = await db.createDocument("posts", {
+          user_id: db.auth.getUser()?.id,
+          content: data.content,
+          postType: data.type,
+        });
+      }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Add the new post to the store with user data
+      const user = db.auth.getUser();
+      addPost({
+        ...newPost,
+        user: user as any,
+      } as any);
 
-    // For now, just show success
-    alert('Post created! (This will be replaced with actual API integration)');
+      alert("Post created!");
+    } catch (err) {
+      console.error("Failed to create post:", err);
+      alert("Failed to create post");
+    }
   };
 
   const handleLike = (postId: string) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              isLiked: !post.isLiked,
-              likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-            }
-          : post
-      )
-    );
+    // TODO: Add API call to persist like
+    toggleLike(postId);
   };
 
   const handleComment = async (postId: string, content: string) => {
     // TODO: Replace with actual API call
-    console.log('Adding comment to post:', postId, content);
+    console.log("Adding comment to post:", postId, content);
+    incrementCommentCount(postId);
+  };
 
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId
-          ? { ...post, commentsCount: post.commentsCount + 1 }
-          : post
-      )
+  useEffect(() => {
+    // Fetch posts on mount (will use cache if available)
+    fetchPosts();
+  }, [fetchPosts]);
+
+  if (isLoading && posts.length === 0) {
+    return (
+      <div className={styles.container}>
+        <CreatePost onSubmit={handleCreatePost} />
+        <div className={styles.posts}>
+          <div className={styles.emptyState}>
+            <h3>Loading posts…</h3>
+            <p>Please wait while we load the latest posts.</p>
+          </div>
+        </div>
+      </div>
     );
+  }
+
+  if (error && posts.length === 0) {
+    return (
+      <div className={styles.container}>
+        <CreatePost onSubmit={handleCreatePost} />
+        <div className={styles.posts}>
+          <div className={styles.emptyState}>
+            <h3>Unable to load posts</h3>
+            <p>{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleRefresh = () => {
+    // Force refresh posts
+    fetchPosts(true);
   };
 
   return (
@@ -93,20 +101,30 @@ export const Feed = () => {
       <CreatePost onSubmit={handleCreatePost} />
 
       <div className={styles.posts}>
+        {isLoading && posts.length > 0 && (
+          <div className={styles.refreshIndicator}>⟳ Refreshing...</div>
+        )}
         {posts.length === 0 ? (
           <div className={styles.emptyState}>
             <h3>No posts yet</h3>
             <p>Be the first to share something!</p>
           </div>
         ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLike={handleLike}
-              onComment={handleComment}
-            />
-          ))
+          <>
+            <div className={styles.refreshButtonContainer}>
+              <button onClick={handleRefresh} className={styles.refreshButton}>
+                <span style={{ fontSize: '1rem' }}>⟳</span> Refresh
+              </button>
+            </div>
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onLike={handleLike}
+                onComment={handleComment}
+              />
+            ))}
+          </>
         )}
       </div>
     </div>

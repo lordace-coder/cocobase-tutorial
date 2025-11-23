@@ -12,6 +12,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  align-items: stretch;
 }
 
 .emptyState {
@@ -32,6 +33,64 @@
 .emptyState p {
   font-size: 0.875rem;
   color: var(--color-gray-500);
+}
+
+.refreshButtonContainer {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.refreshButton {
+  background: transparent;
+  color: var(--color-gray-600);
+  border: 1px solid var(--color-gray-300);
+  border-radius: 2rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.813rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.refreshButton:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-800);
+  transform: scale(1.02);
+}
+
+.refreshButton:active {
+  transform: scale(0.98);
+  background: var(--color-gray-100);
+}
+
+.refreshIndicator {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  text-align: center;
+  font-size: 0.813rem;
+  margin-bottom: 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
+  align-self: center;
+  border: 1px solid var(--color-gray-200);
+  font-weight: 500;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @media (max-width: 640px) {

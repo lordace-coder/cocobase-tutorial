@@ -14,6 +14,16 @@ import {
 } from './pages';
 import './styles/globalStyles.css';
 
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
 
@@ -151,15 +161,5 @@ const AppRoutes = () => {
     </Routes>
   );
 };
-
-function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
 
 export default App;

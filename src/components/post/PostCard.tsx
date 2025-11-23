@@ -5,6 +5,7 @@ import { formatRelativeTime, formatNumber } from '../../utils/textParser';
 import { Avatar } from '../common';
 import { CommentSection } from './CommentSection';
 import styles from './PostCard.module.css';
+import { Document } from 'cocobase';
 
 interface PostCardProps {
   post: Post;
@@ -15,6 +16,12 @@ interface PostCardProps {
 export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
   const [showComments, setShowComments] = useState(false);
   const navigate = useNavigate();
+
+  // Guard clause: skip rendering if post data is not properly populated
+  if (!post.user) {
+    console.error('Post data or user is missing:', post,post.user);
+    return null;
+  }
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't navigate if clicking on interactive elements
@@ -27,7 +34,39 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
     ) {
       return;
     }
-    navigate(`/post/${post.id}`);
+    // Navigate and pass post data via state
+    navigate(`/post/${post.id}`, { state: { post } });
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const postUrl = `${window.location.origin}/post/${post.id}`;
+    const shareText = `Check out this post by @${post.user.username}: ${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`;
+
+    // Check if Web Share API is available (mobile devices)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Post by @${post.user.username}`,
+          text: shareText,
+          url: postUrl,
+        });
+      } catch (error) {
+        // User cancelled or error occurred
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      }
+    } else {
+      // Fallback to clipboard for desktop
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n\n${postUrl}`);
+        alert('Link copied to clipboard!');
+      } catch (error) {
+        console.error('Error copying to clipboard:', error);
+        alert('Failed to copy link');
+      }
+    }
   };
 
   const renderContent = () => {
@@ -36,11 +75,11 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
     let lastIndex = 0;
     let match;
 
-    while ((match = regex.exec(post.content)) !== null) {
+    while ((match = regex.exec(post .content)) !== null) {
       if (match.index > lastIndex) {
         parts.push(
           <span key={`text-${lastIndex}`}>
-            {post.content.substring(lastIndex, match.index)}
+            {post .content.substring(lastIndex, match.index)}
           </span>
         );
       }
@@ -63,10 +102,10 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
       lastIndex = regex.lastIndex;
     }
 
-    if (lastIndex < post.content.length) {
+    if (lastIndex < post .content.length) {
       parts.push(
         <span key={`text-${lastIndex}`}>
-          {post.content.substring(lastIndex)}
+          {post .content.substring(lastIndex)}
         </span>
       );
     }
@@ -78,32 +117,32 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
     <div className={styles.card} onClick={handleCardClick}>
       <div className={styles.header}>
         <Avatar
-          src={post.user.avatarUrl}
-          alt={post.user.displayName}
-          username={post.user.displayName}
+          src={post .user.avatarUrl}
+          alt={post .user.displayName}
+          username={post .user.displayName}
           size="md"
         />
         <div className={styles.userInfo}>
-          <h3 className={styles.displayName}>{post.user.displayName}</h3>
-          <p className={styles.username}>@{post.user.username}</p>
+          <h3 className={styles.displayName}>{post .user.displayName}</h3>
+          <p className={styles.username}>@{post .user.username}</p>
         </div>
-        <span className={styles.time}>{formatRelativeTime(post.createdAt)}</span>
+        <span className={styles.time}>{formatRelativeTime(new Date(post.created_at))}</span>
       </div>
 
       <div className={styles.content}>
         <p className={styles.text}>{renderContent()}</p>
 
-        {post.type === 'image' && post.mediaUrl && (
+        {post.postType === 'image' && post.file && (
           <img
-            src={post.mediaUrl}
+            src={post.file}
             alt="Post media"
             className={styles.media}
           />
         )}
 
-        {post.type === 'video' && post.mediaUrl && (
+        {post.postType === 'video' && post.file && (
           <video
-            src={post.mediaUrl}
+            src={post.file}
             controls
             className={styles.media}
           />
@@ -112,11 +151,11 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
 
       <div className={styles.actions}>
         <button
-          className={`${styles.actionButton} ${post.isLiked ? styles.liked : ''}`}
+          className={`${styles.actionButton} ${post .isLiked ? styles.liked : ''}`}
           onClick={() => onLike(post.id)}
         >
-          <span className={styles.icon}>{post.isLiked ? '❤️' : '🤍'}</span>
-          <span>{formatNumber(post.likes)}</span>
+          <span className={styles.icon}>{post .isLiked ? '❤️' : '🤍'}</span>
+          <span>{formatNumber(post.likes ?? 0)}</span>
         </button>
 
         <button
@@ -124,10 +163,10 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
           onClick={() => setShowComments(!showComments)}
         >
           <span className={styles.icon}>💬</span>
-          <span>{formatNumber(post.commentsCount)}</span>
+          <span>{formatNumber(post.commentsCount ?? 0)}</span>
         </button>
 
-        <button className={styles.actionButton}>
+        <button className={styles.actionButton} onClick={handleShare}>
           <span className={styles.icon}>🔗</span>
           <span>Share</span>
         </button>

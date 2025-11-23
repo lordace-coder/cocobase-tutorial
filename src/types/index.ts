@@ -15,20 +15,19 @@ export interface AuthUser extends User {
 export type PostType = 'text' | 'image' | 'video';
 
 export interface Post {
-  id: string;
-  userId: string;
-  user: User;
-  type: PostType;
+  id:string;
+  user_id: string;
+  user: any;
+  postType: PostType;
   content: string;
-  mediaUrl?: string;
+  file?: string;
   mediaType?: string;
   hashtags: string[];
   mentions: string[];
   likes: number;
   commentsCount: number;
   isLiked: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at:string
 }
 
 export interface Comment {

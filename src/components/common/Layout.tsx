@@ -66,13 +66,13 @@ export const Layout = ({ children }: LayoutProps) => {
               title="Profile"
             >
               <Avatar
-                src={user?.avatarUrl}
-                alt={user?.displayName || 'User'}
-                username={user?.displayName}
+                src={user?.data.avatarUrl}
+                alt={user?.data.displayName || 'User'}
+                username={user?.data.displayName}
                 size="sm"
               />
             </button>
-            <span className={styles.username}>@{user?.username}</span>
+            <span className={styles.username}>@{user?.data.username}</span>
             <Button onClick={logout} variant="ghost" size="sm">
               Logout
             </Button>
