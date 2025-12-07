@@ -1,16 +1,17 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Post } from '../../types';
-import { formatRelativeTime, formatNumber } from '../../utils/textParser';
-import { Avatar } from '../common';
-import { CommentSection } from './CommentSection';
-import styles from './PostCard.module.css';
-import { Document } from 'cocobase';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Post } from "../../types";
+import { formatRelativeTime, formatNumber } from "../../utils/textParser";
+import { Avatar } from "../common";
+import { CommentSection } from "./CommentSection";
+import styles from "./PostCard.module.css";
+import { Document } from "cocobase";
+import db from "@/lib/cocobase";
 
 interface PostCardProps {
-  post: Post;
+  post: Document<Post>;
   onLike: (postId: string) => void;
-  onComment: (postId: string, content: string) => void;
+  onComment?: (postId: string, content: string) => void;
 }
 
 export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
@@ -18,8 +19,8 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
   const navigate = useNavigate();
 
   // Guard clause: skip rendering if post data is not properly populated
-  if (!post.user) {
-    console.error('Post data or user is missing:', post,post.user);
+  if (!post.data.user) {
+    console.error("Post data or user is missing:", post, post.data.user);
     return null;
   }
 
@@ -27,8 +28,8 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
     // Don't navigate if clicking on interactive elements
     const target = e.target as HTMLElement;
     if (
-      target.tagName === 'BUTTON' ||
-      target.closest('button') ||
+      target.tagName === "BUTTON" ||
+      target.closest("button") ||
       target.classList.contains(styles.hashtag) ||
       target.classList.contains(styles.mention)
     ) {
@@ -41,30 +42,34 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const postUrl = `${window.location.origin}/post/${post.id}`;
-    const shareText = `Check out this post by @${post.user.username}: ${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}`;
+    const shareText = `Check out this post by @${
+      post.data.user.data.username
+    }: ${post.data.content.substring(0, 100)}${
+      post.data.content.length > 100 ? "..." : ""
+    }`;
 
     // Check if Web Share API is available (mobile devices)
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Post by @${post.user.username}`,
+          title: `Post by @${post.data.user.data.username}`,
           text: shareText,
           url: postUrl,
         });
       } catch (error) {
         // User cancelled or error occurred
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Error sharing:', error);
+        if ((error as Error).name !== "AbortError") {
+          console.error("Error sharing:", error);
         }
       }
     } else {
       // Fallback to clipboard for desktop
       try {
         await navigator.clipboard.writeText(`${shareText}\n\n${postUrl}`);
-        alert('Link copied to clipboard!');
+        alert("Link copied to clipboard!");
       } catch (error) {
-        console.error('Error copying to clipboard:', error);
-        alert('Failed to copy link');
+        console.error("Error copying to clipboard:", error);
+        alert("Failed to copy link");
       }
     }
   };
@@ -75,23 +80,23 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
     let lastIndex = 0;
     let match;
 
-    while ((match = regex.exec(post .content)) !== null) {
+    while ((match = regex.exec(post.data.content)) !== null) {
       if (match.index > lastIndex) {
         parts.push(
           <span key={`text-${lastIndex}`}>
-            {post .content.substring(lastIndex, match.index)}
+            {post.data.content.substring(lastIndex, match.index)}
           </span>
         );
       }
 
       const matchedText = match[0];
-      if (matchedText.startsWith('#')) {
+      if (matchedText.startsWith("#")) {
         parts.push(
           <span key={`hashtag-${match.index}`} className={styles.hashtag}>
             {matchedText}
           </span>
         );
-      } else if (matchedText.startsWith('@')) {
+      } else if (matchedText.startsWith("@")) {
         parts.push(
           <span key={`mention-${match.index}`} className={styles.mention}>
             {matchedText}
@@ -102,10 +107,10 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
       lastIndex = regex.lastIndex;
     }
 
-    if (lastIndex < post .content.length) {
+    if (lastIndex < post.data.content.length) {
       parts.push(
         <span key={`text-${lastIndex}`}>
-          {post .content.substring(lastIndex)}
+          {post.data.content.substring(lastIndex)}
         </span>
       );
     }
@@ -117,53 +122,45 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
     <div className={styles.card} onClick={handleCardClick}>
       <div className={styles.header}>
         <Avatar
-          src={post .user.avatarUrl}
-          alt={post .user.displayName}
-          username={post .user.displayName}
+          src={post.data.user.data.avatarUrl}
+          alt={post.data.user.data.displayName}
+          username={post.data.user.data.displayName}
           size="md"
         />
         <div className={styles.userInfo}>
-          <h3 className={styles.displayName}>{post .user.displayName}</h3>
-          <p className={styles.username}>@{post .user.username}</p>
+          <h3 className={styles.displayName}>
+            {post.data.user.data.displayName}
+          </h3>
+          <p className={styles.username}>@{post.data.user.data.username}</p>
         </div>
-        <span className={styles.time}>{formatRelativeTime(new Date(post.created_at))}</span>
+        <span className={styles.time}>
+          {formatRelativeTime(new Date(post.created_at))}
+        </span>
       </div>
 
       <div className={styles.content}>
         <p className={styles.text}>{renderContent()}</p>
 
-        {post.postType === 'image' && post.file && (
-          <img
-            src={post.file}
-            alt="Post media"
-            className={styles.media}
-          />
+        {post.data.postType === "image" && post.data.file && (
+          <img src={post.data.file} alt="Post media" className={styles.media} />
         )}
 
-        {post.postType === 'video' && post.file && (
-          <video
-            src={post.file}
-            controls
-            className={styles.media}
-          />
+        {post.data.postType === "video" && post.data.file && (
+          <video src={post.data.file} controls className={styles.media} />
         )}
       </div>
 
       <div className={styles.actions}>
         <button
-          className={`${styles.actionButton} ${post .isLiked ? styles.liked : ''}`}
+          className={`${styles.actionButton} ${
+            post.data.likes.includes(db.auth.getUser()!.id) ? styles.liked : ""
+          }`}
           onClick={() => onLike(post.id)}
         >
-          <span className={styles.icon}>{post .isLiked ? '❤️' : '🤍'}</span>
-          <span>{formatNumber(post.likes ?? 0)}</span>
-        </button>
-
-        <button
-          className={styles.actionButton}
-          onClick={() => setShowComments(!showComments)}
-        >
-          <span className={styles.icon}>💬</span>
-          <span>{formatNumber(post.commentsCount ?? 0)}</span>
+          <span className={styles.icon}>
+            {post.data.likes?.includes(db.auth.getUser()?.id!) ? "❤️" : "🤍"}
+          </span>
+          <span>{formatNumber(post.data.likes?.length ?? 0)}</span>
         </button>
 
         <button className={styles.actionButton} onClick={handleShare}>
@@ -172,7 +169,7 @@ export const PostCard = ({ post, onLike, onComment }: PostCardProps) => {
         </button>
       </div>
 
-      {showComments && (
+      {showComments && onComment && (
         <CommentSection
           postId={post.id}
           onComment={(content) => onComment(post.id, content)}

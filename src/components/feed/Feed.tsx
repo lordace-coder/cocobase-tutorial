@@ -7,7 +7,8 @@ import { usePostsStore } from "@/store";
 
 export const Feed = () => {
   // Get state and actions from Zustand store
-  const { posts, isLoading, error, fetchPosts, toggleLike, incrementCommentCount, addPost } = usePostsStore();
+  const { posts, isLoading, error, fetchPosts, toggleLike, addPost } =
+    usePostsStore();
 
   const handleCreatePost = async (data: CreatePostData) => {
     console.log("Creating post:", data);
@@ -50,12 +51,6 @@ export const Feed = () => {
   const handleLike = (postId: string) => {
     // TODO: Add API call to persist like
     toggleLike(postId);
-  };
-
-  const handleComment = async (postId: string, content: string) => {
-    // TODO: Replace with actual API call
-    console.log("Adding comment to post:", postId, content);
-    incrementCommentCount(postId);
   };
 
   useEffect(() => {
@@ -113,16 +108,11 @@ export const Feed = () => {
           <>
             <div className={styles.refreshButtonContainer}>
               <button onClick={handleRefresh} className={styles.refreshButton}>
-                <span style={{ fontSize: '1rem' }}>⟳</span> Refresh
+                <span style={{ fontSize: "1rem" }}>⟳</span> Refresh
               </button>
             </div>
             {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={handleLike}
-                onComment={handleComment}
-              />
+              <PostCard key={post.id} post={post} onLike={handleLike} />
             ))}
           </>
         )}

@@ -1,3 +1,5 @@
+import { AppUser } from "cocobase";
+
 export interface User {
   id: string;
   username: string;
@@ -12,22 +14,19 @@ export interface AuthUser extends User {
   accessToken: string;
 }
 
-export type PostType = 'text' | 'image' | 'video';
+export type PostType = "text" | "image" | "video";
 
 export interface Post {
-  id:string;
   user_id: string;
-  user: any;
+  user: AppUser;
   postType: PostType;
   content: string;
   file?: string;
   mediaType?: string;
   hashtags: string[];
   mentions: string[];
-  likes: number;
-  commentsCount: number;
-  isLiked: boolean;
-  created_at:string
+  likes: string[];
+  comment_ids?:string[]
 }
 
 export interface Comment {
@@ -69,7 +68,7 @@ export interface GoogleAuthResponse {
   credential: string;
 }
 
-export type NotificationType = 'like' | 'comment' | 'mention' | 'follow';
+export type NotificationType = "like" | "comment" | "mention" | "follow";
 
 export interface Notification {
   id: string;
@@ -83,7 +82,7 @@ export interface Notification {
   createdAt: Date;
 }
 
-export type MessageType = 'text' | 'image' | 'video' | 'voice' | 'file';
+export type MessageType = "text" | "image" | "video" | "voice" | "file";
 
 export interface Message {
   id: string;

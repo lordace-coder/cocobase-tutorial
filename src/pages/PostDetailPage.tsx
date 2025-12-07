@@ -6,12 +6,15 @@ import { Avatar, Button, TextArea, Layout } from "../components/common";
 import { formatRelativeTime } from "../utils/textParser";
 import styles from "./PostDetailPage.module.css";
 import db from "../lib/cocobase";
+import { Document } from "cocobase";
+import { usePostsStore } from "../store/postsStore";
 
 export const PostDetailPage = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const [post, setPost] = useState<Post | null>(null);
+  const { toggleLike, incrementCommentCount } = usePostsStore();
+  const [post, setPost] = useState<Document<Post> | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -23,26 +26,65 @@ export const PostDetailPage = () => {
       setError(null);
 
       // First, check if post was passed via navigation state
-      const statePost = (location.state as { post?: Post })?.post;
+      const statePost = (location.state as { post?: Document<Post> })?.post;
 
       if (statePost && statePost.id === postId) {
         // Use the passed post data
         setPost(statePost);
-        setIsLoading(false);
-        // TODO: Load comments from database
-        setComments([]);
+        // Load comments from database
+        try {
+          console.log("Loading comments for post:", postId);
+          console.log("Comment IDs:", statePost.data.comment_ids);
+
+          if (
+            statePost.data.comment_ids &&
+            statePost.data.comment_ids.length > 0
+          ) {
+            console.log(
+              "Fetching comments with IDs:",
+              statePost.data.comment_ids
+            );
+            const fetchedComments = await db.listDocuments("comments", {
+              filters: {
+                id_in: statePost.data.comment_ids.join(","),
+              },
+              populate: ["user"],
+            });
+            console.log("Fetched comments:", fetchedComments);
+            setComments(fetchedComments as any);
+          } else {
+            console.log("No comment IDs found on post");
+            setComments([]);
+          }
+          setIsLoading(false);
+        } catch (err) {
+          console.error("Failed to load comments:", err);
+          setComments([]);
+          setIsLoading(false);
+        }
       } else {
         // Fallback: Load post from database (for direct URL access)
         try {
           const fetchedPost = (
             await db.listDocuments<Post>("posts", {
-              populate: ["user"],
+              populate: ["user", "comments:comments"],
               limit: 1,
             })
           )[0];
           setPost(fetchedPost as any);
-          // TODO: Load comments from database
-          setComments([]);
+          // Load comments from database
+          if (
+            fetchedPost.data.comment_ids &&
+            fetchedPost.data.comment_ids.length > 0
+          ) {
+            const fetchedComments = await db.listDocuments("comments", {
+              filters: {
+                id_in: fetchedPost.data.comment_ids.join(","),
+              },
+              populate: ["user"],
+            });
+            setComments(fetchedComments as any);
+          }
         } catch (err) {
           console.error("Failed to load post:", err);
           setError("Failed to load post. It may have been deleted.");
@@ -73,40 +115,31 @@ export const PostDetailPage = () => {
 
   const handlePostLike = () => {
     if (post) {
-      setPost({
-        ...post,
-        isLiked: !post.isLiked,
-        likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-      });
+      toggleLike(post.id);
     }
   };
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
-    // TODO: Replace with actual API call
-    const newCommentObj: Comment = {
-      id: String(Date.now()),
-      postId: postId!,
-      userId: "1",
-      user: {
-        id: "1",
-        username: "currentuser",
-        displayName: "Current User",
-        email: "user@example.com",
-        createdAt: new Date(),
-      },
-      content: newComment,
-      mentions: [],
-      likes: 0,
-      isLiked: false,
-      createdAt: new Date(),
-    };
+    try {
+      console.log("Adding comment to post:", postId, newComment);
+      const comment = await db.createDocument("comments", {
+        user_id: db.auth.getUser()?.id,
+        comment: newComment,
+      });
 
-    setComments([...comments, newCommentObj]);
-    setNewComment("");
-    if (post) {
-      setPost({ ...post, commentsCount: post.commentsCount + 1 });
+      // add comment to post
+      await db.updateDocument("posts", post?.id!, {
+        $append: {
+          comment_ids: [comment.id],
+        },
+      });
+      incrementCommentCount(postId!);
+      setNewComment("");
+    } catch (err) {
+      console.error("Failed to add comment:", err);
+      alert("Failed to add comment");
     }
   };
 
